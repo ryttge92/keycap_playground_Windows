@@ -69,9 +69,9 @@ BETWEENSPACE = 0.8; // The Betweenspace:  The void between realms...  And keycap
 
 // BASIC KEYCAP PARAMETERS
 // If you want to make a keycap using a common profile set this to one of: dcs, dss, dsa, kat, kam, riskeycap, gem:
-KEY_PROFILE = "riskeycap"; // [riskeycap, gem, dsa, dcs, dss, kat, kam]
+KEY_PROFILE = "dcs"; // [riskeycap, gem, dsa, dcs, dss, kat, kam]
 // Any value other than a supported profile (e.g. "dsa") will use the globals specified below.  In other words, an empty KEY_PROFILE means "just use the values specified here in this file."
-KEY_ROW = 1; // NOTE: For a spacebar make sure you also set DISH_INVERT=true
+KEY_ROW = 4; // NOTE: For a spacebar make sure you also set DISH_INVERT=true
 // Some settings override profile settings but most will be ignored (if using a profile)
 KEY_HEIGHT = 9; // The Z (NOTE: Dish values may reduce this a bit as they carve themselves out)
 KEY_HEIGHT_EXTRA = 0.0; // If you're planning on sanding the keycap you can use this to make up for lost material (normally this is only useful when using a profile e.g. DSA)
@@ -82,8 +82,9 @@ KEY_WIDTH = (KEY_UNIT*1-BETWEENSPACE); // The Y (NOTE: If using POLYGON_EGDES>4 
 // NOTE: Spacebars don't seem to use BETWEENSPACE (for whatever reason).  So to make a spacebar just use "KEY_UNIT*<spacebar unit length>" and omit the "-BETWEENSPACE" part.  Or just be precise and give it a value like 119.0625 (19.05*6.25)
 // NOTE: When making longer keycaps you may need to increase KEY_HEIGHT slightly in order for the height to be accurate.  I recommend giving it an extra 0.3mm per extra unit of length so 2U would be +0.3, 3U would be +0.6, etc BUT DOUBLE CHECK IT.  Do a side profile view and look at the ruler or render it and double-check the height in your slicer.
 //KEY_ROTATION = [0,0,0]; // I *highly* recommend 3D printing keycaps on their front/back/sides! Try this:
-KEY_ROTATION = [0,110.1,90]; // An example of how you'd rotate a keycap on its side.  Make sure to zoom in on the bottom to make sure it's *actually* going to print flat! This should be the correct rotation for riskeycap profile.  For GEM use:
-//KEY_ROTATION = [0,108.6,90];
+//KEY_ROTATION = [0,110.1,90]; // An example of how you'd rotate a keycap on its side.  Make sure to zoom in on the bottom to make sure it's *actually* going to print flat! This should be the correct rotation for riskeycap profile.  For GEM use:
+KEY_ROTATION = [0,108.6,90]; // Print GEM on the left side
+//KEY_ROTATION = [0,252.4,90]; // Print GEM on the right side
 // NOTE: If you rotate a keycap to print on its side don't forget to add a built-in support via STEM_SIDE_SUPPORTS! [0,1,0,0] is what you want if you rotated to print on the right side.
 KEY_TOP_DIFFERENCE = 5; // How much skinnier the key is at the top VS the bottom [x,y]
 KEY_TOP_X = 0; // Move the keycap's top on the X axis (controls skew left/right)
@@ -148,7 +149,7 @@ STEM_INSET = 1; // How far to inset the stem (set to 0 to have the stem rest on 
 STEM_FLAT_SUPPORT = false; // Add built-in support for the stem when printing flat (if inset)
 STEM_SIDE_SUPPORT_THICKNESS = 1; // 1 works well for most things
 // This controls which sides get (internal, under-the-top) stem supports (for printing on the side):
-STEM_SIDE_SUPPORTS = [0,1,0,0]; // Left, right, front, back
+STEM_SIDE_SUPPORTS = [0,0,0,0]; // Left, right, front, back
 // NOTE: You can only enable left/right supports *or* front/back supports.  Not both at the same time. (TODO: Fix that...  Maybe?  Why would you ever need *both* say, a left support *and* a top support at the same time?)
 STEM_SUPPORT_DISTANCE = 0.2; // Controls the air gap between the stem and its support
 // NOTE: If printing with a small nozzle like 0.25mm you might want to set the support distance to 0 to prevent "misses".
@@ -176,21 +177,35 @@ HOMING_DOT_Z = -0.35; // 0 == Right at KEY_HEIGHT (dish type makes a big differe
 
 // LEGENDARY!
 LEGENDS = [ // As many legends as you want
-//    "A",
+
+      "T", "","","F11","","","",
 //    "1", "!", // Just an example of multiple legends (uncomment to try it!)
 //    "☺", // Unicode characters work too!
 ];
 // NOTE: Legends might not look quite right until final render (F6)
 LEGEND_FONTS = [ // Each legend can use its own font. If not specified the first font definition will be used
-    "Overpass Nerd Font",
+//    "Overpass Nerd Font",
 //    "Arial Black:style=Regular", // Position/index must match the index in LEGENDS
 //    "Franklin Gothic Medium:style=Regular" // Normal-ish keycap legend font
 //    "Gotham Rounded:style=Bold", // Looks similar to the SA Dasher font
+
+     "nunito:style=Bold",
+     "nunito:style=Bold",
+     "nunito:style=Bold",
+     "nunito:style=Bold", // Front
+     "nunito:style=Bold", //Right
+     "Gotham Rounded:style=Bold", //Left
+     "nunito:style=Bold",
     // Favorite fonts for legends: Roboto, Aharoni, Ubuntu, Cabin, Noto, Code2000, Franklin Gothic Medium
 ]; // Tip: "Noto" and "Code2000" have nearly every emoji/special/funky unicode chars
 LEGEND_FONT_SIZES = [ // Each legend can have its own font size
     5.5, // Position/index must match the index in LEGENDS (this is the first legend)
     4, // Second legend...  etc
+    4,//Bot Right
+    3,//Front
+    3,//Right
+    2,//Left (Same side it prints on)
+    2,//Back
 ];
 LEGEND_CARVED = false; // Makes it so the bottom of the legend matches the shape of the dish (in case you want to translate() it up to the top of the keycap to finely control its depth).  Slows down rendering quite a bit so unless you have a specific need you'd best keep it set to false.
 /* NOTES ABOUT LEGEND TRANSLATION AND ROTATION
@@ -203,16 +218,33 @@ LEGEND_TRANS = [ // You can translate() legends around however you like.
     [-0.1,0,0], // A good default (FYI: -0.1-0.15mm works around OpenSCAD's often-broken font centering)
     [4.15,3,1],
     [4.40,KEY_TOP_Y+2.25,0], // Top right (mostly)
+    [0.15,-3,2],//Front
+    [0.15,0,2],//Right
+    [0.15,0,2],//Left (Same side it prints on)
+    [0.15,0,2],//Back
 ];
 LEGEND_ROTATION = [ // How to rotate each legend. If not specified defaults to [0,0,0]
-    [0,0,0],
+    [0,0,0],//Center
+    [0,0,0],//Top Right
+    [0,0,0],//Bot Right
+    [60,0,0],//Front
+    [0,0,-90],//Right
+    [0,0,90],//Left (Same side it prints on)
+    [0,0,180],//Back
 //    [60,0,0], // Example of how you'd put a legend on the front (try it!)
 ];
 LEGEND_TRANS2 = [ // Second translate() call (see note above)
     [0,0,0],
 ];
 LEGEND_ROTATION2 = [ // Sometimes you want to rotate again after translate(); that's what this is for
-    [0,0,0],
+    [0,0,0],//Center
+    [0,0,0],//Top Right
+    [0,0,0],//Bot Right
+    [0,0,0],//Front
+    [0,-60,0],//Right
+    [0,60,0],//Left (Same side it prints on)
+    [-60,0,0],//Back
+    
 ];
 LEGEND_SCALE = [ // Want to shrink/stretch your legends on a particular axis?  Do that here:
     [1,1,1],
