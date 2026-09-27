@@ -25,7 +25,8 @@ module _poly_keycap(height=9.0, length=18, width=18,
     reduction_factor = dish_tilt_curve ? 2.25 : 2.35;
     height_adjust = ((abs(width * sin(dish_tilt)) + abs(height * cos(dish_tilt))) - height)/polygon_layers/reduction_factor;
     difference() {
-        for (l=[0:polygon_layers-1]) {
+        // NOTE: union() is required with lazy-union; otherwise each layer is a separate child of difference() and gets subtracted from the first layer
+        union() for (l=[0:polygon_layers-1]) {
             layer_height_adjust_below = (height_adjust*l);
             layer_height_adjust_above = (height_adjust*(l+1));
             tilt_below_curved = dish_tilt_curve ? layer_tilt_adjust * l: 0;
