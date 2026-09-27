@@ -72,7 +72,9 @@ module stem_top(key_height, key_length, key_width, dish_depth, dish_thickness, t
             // Inverted dish needs to go up a bit
             inverted_dish_adjustment = dish_invert ? wall_thickness*0.85 : 0;
             translate([0,0,-wall_thickness]) difference() {
-                _poly_keycap(
+                _poly_keycap_inset(
+                    key_height=key_height, key_length=key_length, key_width=key_width,
+                    key_top_difference=top_difference,
                 // Since this is an interior cutout sort of thing we need to cut the height down slightly so there's some overlap
                     height=key_height-wall_thickness/2+inverted_dish_adjustment,
                     length=key_length-wall_thickness*2,
@@ -94,7 +96,9 @@ module stem_top(key_height, key_length, key_width, dish_depth, dish_thickness, t
                     polygon_rotation=polygon_rotation,
                     dish_invert=dish_invert);
                 if (wall_extra != 0) { // Stem will get its own walls
-                    translate([0,0,-0.001]) _poly_keycap(
+                    translate([0,0,-0.001]) _poly_keycap_inset(
+                        key_height=key_height, key_length=key_length, key_width=key_width,
+                        key_top_difference=top_difference,
                         height=key_height-wall_thickness/2-wall_extra+inverted_dish_adjustment,
                         length=key_length-wall_thickness*2-wall_extra*2,
                         width=key_width-wall_thickness*2-wall_extra*2,
@@ -189,7 +193,9 @@ module stem_box_cherry(key_height, key_length, key_width, dish_depth, dish_thick
     rotate(key_rotation)
         if (uniform_wall_thickness) {
             difference() {
-                _poly_keycap(
+                _poly_keycap_inset(
+                    key_height=key_height, key_length=key_length, key_width=key_width,
+                    key_top_difference=top_difference,
                 // Since this is an interior cutout sort of thing we need to cut the height down slightly so there's some overlap
                     height=key_height-wall_thickness,
                     length=key_length-wall_thickness*2,
@@ -211,7 +217,9 @@ module stem_box_cherry(key_height, key_length, key_width, dish_depth, dish_thick
                     corner_radius_curve=corner_radius_curve,
                     polygon_rotation=polygon_rotation,
                     dish_invert=dish_invert);
-                translate([0,0,-0.001]) _poly_keycap(
+                translate([0,0,-0.001]) _poly_keycap_inset(
+                    key_height=key_height, key_length=key_length, key_width=key_width,
+                    key_top_difference=top_difference,
                     height=key_height-wall_thickness-wall_extra,
                     length=key_length-wall_thickness*2-wall_extra*2,
                     width=key_width-wall_thickness*2-wall_extra*2,
@@ -400,7 +408,9 @@ module _stem_box_cherry(key_height, key_length, key_width, dish_depth, dish_thic
                         }
                     }
                 // Carve out the top of the little stem topper bit so that it matches the keycap more precisely:
-                _poly_keycap(
+                _poly_keycap_inset(
+                    key_height=key_height, key_length=key_length, key_width=key_width,
+                    key_top_difference=top_difference,
                 // wall_thickness gets reduced a smidge to ensure there's *some* overlap
                     height=key_height-wall_thickness/2,
                     length=key_length-wall_thickness*1.5,
@@ -499,7 +509,9 @@ module stem_round_cherry(key_height, key_length, key_width, dish_depth, dish_thi
     rotate(key_rotation) 
         if (uniform_wall_thickness) {
             difference() {
-                _poly_keycap(
+                _poly_keycap_inset(
+                    key_height=key_height, key_length=key_length, key_width=key_width,
+                    key_top_difference=top_difference,
                 // Since this is an interior cutout sort of thing we need to cut the height down slightly so there's some overlap
                     height=key_height-wall_thickness,
                     length=key_length-wall_thickness*2,
@@ -520,7 +532,9 @@ module stem_round_cherry(key_height, key_length, key_width, dish_depth, dish_thi
                     corner_radius_curve=corner_radius_curve,
                     polygon_rotation=polygon_rotation,
                     dish_invert=dish_invert);
-                translate([0,0,-0.001]) _poly_keycap(
+                translate([0,0,-0.001]) _poly_keycap_inset(
+                    key_height=key_height, key_length=key_length, key_width=key_width,
+                    key_top_difference=top_difference,
                     height=key_height-wall_thickness-wall_extra,
                     length=key_length-wall_thickness*2-wall_extra*2,
                     width=key_width-wall_thickness*2-wall_extra*2,
@@ -689,7 +703,9 @@ module _stem_round_cherry(key_height, key_length, key_width, dish_depth, dish_th
                   stem_topper_height/2+inset+depth])
                     cylinder(d=CHERRY_CYLINDER_DIAMETER-outside_tolerance, h=stem_topper_height, center=true);
                 // Carve out the top of the little stem topper bit so that it matches the keycap more precisely:
-                _poly_keycap(
+                _poly_keycap_inset(
+                    key_height=key_height, key_length=key_length, key_width=key_width,
+                    key_top_difference=top_difference,
                 // wall_thickness gets reduced a smidge to ensure there's *some* overlap
                     height=key_height-wall_thickness/2,
                     length=key_length,
@@ -793,7 +809,9 @@ module stem_alps(key_height, key_length, key_width, dish_depth, dish_thickness, 
     rotate(key_rotation) 
         if (uniform_wall_thickness) {
             difference() {
-                _poly_keycap(
+                _poly_keycap_inset(
+                    key_height=key_height, key_length=key_length, key_width=key_width,
+                    key_top_difference=top_difference,
                 // Since this is an interior cutout sort of thing we need to cut the height down slightly so there's some overlap
                     height=key_height-wall_thickness,
                     length=key_length-wall_thickness*2,
@@ -814,7 +832,9 @@ module stem_alps(key_height, key_length, key_width, dish_depth, dish_thickness, 
                     corner_radius_curve=corner_radius_curve,
                     polygon_rotation=polygon_rotation,
                     dish_invert=dish_invert);
-                translate([0,0,-0.001]) _poly_keycap(
+                translate([0,0,-0.001]) _poly_keycap_inset(
+                    key_height=key_height, key_length=key_length, key_width=key_width,
+                    key_top_difference=top_difference,
                     height=key_height-wall_thickness-wall_extra,
                     length=key_length-wall_thickness*2-wall_extra*2,
                     width=key_width-wall_thickness*2-wall_extra*2,
@@ -1001,7 +1021,9 @@ module _stem_alps(key_height, key_length, key_width, dish_depth, dish_thickness,
                         h=stem_topper_height,
                         r=corner_radius, center=true);
                 // Carve out the top of the little stem topper bit so that it matches the keycap more precisely:
-                _poly_keycap(
+                _poly_keycap_inset(
+                    key_height=key_height, key_length=key_length, key_width=key_width,
+                    key_top_difference=top_difference,
                 // wall_thickness gets reduced a smidge to ensure there's *some* overlap
                     height=key_height-wall_thickness/2,
                     length=key_length,
@@ -1114,7 +1136,9 @@ module stem_support(key_height, key_length, key_width, dish_depth, dish_thicknes
         translate([0,0,-0.001])
             // This fills in the entire area under the keycap:
             if (uniform_wall_thickness) {
-                _poly_keycap(
+                _poly_keycap_inset(
+                    key_height=key_height, key_length=key_length, key_width=key_width,
+                    key_top_difference=top_difference,
                     // Since this is an interior cutout sort of thing we need to cut the height down slightly so there's some overlap
                     height=key_height+inverted_dish_adjustment,
                     length=key_length-wall_thickness*2-wall_extra*2,
