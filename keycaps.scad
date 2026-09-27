@@ -356,6 +356,17 @@ module _poly_keycap(height=9.0, length=18, width=18,
     }
 }
 
+// How far _poly_keycap() lowers the dish to compensate for dish_tilt (mirrors its height_adjust/z_adjust math)
+function _dish_z_adjust(width, height, dish_tilt, polygon_layers, dish_tilt_curve) =
+    ((abs(width * sin(dish_tilt)) + abs(height * cos(dish_tilt))) - height)
+    / polygon_layers / (dish_tilt_curve ? 2.25 : 2.35) * (polygon_layers+2);
+
+// Radius of the circle used by _poly_keycap() for a dish of the given size/depth
+function _dish_radius(dimension, depth) = (pow(dimension, 2) + 4 * pow(depth, 2)) / (8 * depth);
+
+// Depth of a circular dish with radius r spanning the given dimension
+function _dish_sagitta(r, dimension) = r - sqrt(max(pow(r, 2) - pow(dimension, 2)/4, 0));
+
 // TODO: Document all these arguments
 // NOTE: If polygon_curve or corner_radius_curve are 0 they will be ignored (respectively)
 module poly_keycap(height=9.0, length=18, width=18,
@@ -514,16 +525,40 @@ module poly_keycap(height=9.0, length=18, width=18,
             // Interior cutout (i.e. make room inside the keycap)
             // TODO: Add support for snap-fit stems with uniform_wall_thickness
             if (uniform_wall_thickness) { // Make the interior match the shape of the dish
+                interior_length = length-wall_thickness*2;
+                interior_width = width-wall_thickness*2;
+                interior_height = height-wall_thickness;
+                // The interior dish must be concentric with the exterior dish (radius increased by
+                // wall_thickness) or the top gets too thin on steeply tilted keycaps (e.g. DCS row 4).
+                // _poly_keycap()'s tilt compensation depends on width/height so we have to undo that too.
+                concentric_dish = dish_depth > 0 && !dish_invert
+                    && (dish_type == "cylinder" || dish_type == "sphere");
+                sphere_factor = dish_type == "sphere" ? 2 : 1; // Sphere dishes use rad*2
+                outer_dim = length > width ? length-top_difference : width-top_difference;
+                inner_dim = interior_length > interior_width ?
+                    interior_length-top_difference : interior_width-top_difference;
+                outer_rad = _dish_radius(outer_dim, dish_depth);
+                inner_rad = outer_rad + wall_thickness/sphere_factor;
+                inner_depth = _dish_sagitta(inner_rad, inner_dim);
+                outer_z_adjust = _dish_z_adjust(width, height, dish_tilt, polygon_layers, dish_tilt_curve);
+                inner_z_adjust = _dish_z_adjust(
+                    interior_width, interior_height, dish_tilt, polygon_layers, dish_tilt_curve);
+                // Z of the dish's center before tilting (same formula for cylinder and sphere, scaled)
+                outer_center = sphere_factor*outer_rad - dish_depth + height + dish_z - outer_z_adjust;
+                interior_dish_depth = concentric_dish ? inner_depth : dish_depth;
+                interior_dish_z = concentric_dish ?
+                    outer_center - (sphere_factor*inner_rad - inner_depth + interior_height - inner_z_adjust)
+                    : dish_z;
                 translate([0,0,-0.001]) {
                     _poly_keycap(
-                        height=height-wall_thickness, length=length-wall_thickness*2,
-                        width=width-wall_thickness*2, wall_thickness=wall_thickness,
+                        height=interior_height, length=interior_length,
+                        width=interior_width, wall_thickness=wall_thickness,
                         top_difference=top_difference,
                         dish_tilt=dish_tilt,
                         dish_tilt_curve=dish_tilt_curve, stem_clips=stem_clips,
                         stem_walls_inset=stem_walls_inset,
-                        top_x=top_x, top_y=top_y, dish_depth=dish_depth,
-                        dish_x=dish_x, dish_y=dish_y, dish_z=dish_z,
+                        top_x=top_x, top_y=top_y, dish_depth=interior_dish_depth,
+                        dish_x=dish_x, dish_y=dish_y, dish_z=interior_dish_z,
                         dish_thickness=dish_thickness, dish_fn=dish_fn,
                         dish_corner_fn=dish_corner_fn,
                         polygon_layers=polygon_layers,
