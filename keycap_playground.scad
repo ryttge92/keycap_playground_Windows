@@ -9,7 +9,7 @@
     * TIP: PRINT KEYCAPS ON THEIR SIDE!  They'll turn out nice and smooth right off the printer!  Use the KEY_ROTATION feature to take care of it BUT DON'T FORGET the STEM_SIDE_SUPPORTS feature to enable built-in supports for the stem(s).  BUILT-IN SUPPORTS MUST BE CUT OFF AFTER PRINTING.  Cut off the support where it meets the interior wall of the keycap (with flush cutters) and it should easily break away from the side that supports the stem.
     * TIP: If you're making changes but nothing's happening when you hit F5: Did you forget to change the KEY_PROFILE to "" (an empty string)?
     * The default rendering mode (["keycap", "stem"]) will include inset (non-multi-material) legends automatically.  Adding "legends" to RENDER is something you only want to do if you're making multi-material keycaps...
-    * To make a multi-material print just render and export "keycap", "stem", and "legends" as separate .stl files.  To save time you can render ["keycap", "stem"] and then just ["legends"].
+    * MULTI-MATERIAL: Set WHAT_TO_RENDER = "multi-material" (or "multi-material row"), render (F6) and export as .3mf.  You get two objects: the keycap+stem (MULTI_MATERIAL_BODY_COLOR) and the legends (MULTI_MATERIAL_LEGEND_COLOR), with the legends cut out of the body so nothing overlaps.  Requires a recent OpenSCAD development snapshot with Preferences -> Features -> "lazy-union" enabled (otherwise everything gets merged into one object) and the "manifold" backend (for speed).  In your slicer, load the .3mf as a single object with multiple parts and assign a filament to each part.
     * TIP: Want to make a keycap that works great (looks cool) with backlit/RGB LED keyboards?  Print the stem and legends in a transparent material (clear PETG is a very effective light pipe!).  You can also render the stem and legends as a single file: ["stem", "legends"] which will save time importing into your slicer later.  Alternatively, just make the dish kinda thick, use UNIFORM_WALL_THICKNESS, and print in white PETG (most white PETGs seem to be transparent enough for it to look pretty good!).
     * Have a lot of different legends/keycaps to render?  You can add all your legends to the ROW variable and then render ["row", "row_stems"] and ["row_legends"].
     * Having trouble lining up your legends?  Try setting VISUALIZE_LEGENDS=1!  It'll show you where they all are, their angles, etc.
@@ -35,13 +35,20 @@ use <profiles.scad>
 $fn = 32; // Mostly only applies to legends/fonts but increase as needed for greater resolution
 
 // Pick what you want to render. For more advanced options edit the RENDER variable directly (don't use the customizer).
-WHAT_TO_RENDER = "keycap+stem"; // [keycap, keycap+stem, legends]
+// "multi-material" renders the keycap+stem and the legends as two separately colored objects in one
+// render (use "multi-material row" for everything in ROW). See the MULTI-MATERIAL note at the top.
+WHAT_TO_RENDER = "multi-material"; // [keycap, keycap+stem, legends, multi-material, multi-material row]
 
 RENDER = WHAT_TO_RENDER == "keycap" ? ["keycap"] : (
          WHAT_TO_RENDER == "keycap+stem" ? ["keycap", "stem"] : (
          WHAT_TO_RENDER == "legends" ? ["legends"] : []
 ));
 // NOTE: I *hate* that OpenSCAD forces conditional assignment like that.  I can't stand the ternary operator!
+MULTI_MATERIAL = WHAT_TO_RENDER == "multi-material" || WHAT_TO_RENDER == "multi-material row";
+
+// Colors used for the keycap+stem ("body") and the legends. With multi-material 3MF export each color becomes its own object/filament.
+MULTI_MATERIAL_BODY_COLOR = "white";
+MULTI_MATERIAL_LEGEND_COLOR = "#505050";
 
 //RENDER = ["keycap", "stem"];
 // Supported values: keycap, stem, legends, row, row_stems, row_legends, custom
@@ -515,9 +522,19 @@ module stem_top_using_globals() {
 
 // This takes care of rendering whatever's configured via RENDER:
 module handle_render(what, legends) {
+    part_color = what == "legends" ? MULTI_MATERIAL_LEGEND_COLOR
+        : (what == "keycap" || what == "stem") ? MULTI_MATERIAL_BODY_COLOR : undef;
+    if (is_undef(part_color)) {
+        render_part(what, legends);
+    } else {
+        color(part_color) render_part(what, legends);
+    }
+}
+
+// Renders a single part without any color (so callers can combine parts and color the result)
+module render_part(what, legends) {
     if (what=="legends") {
     // NOTE: just_legends() uses children() which is why there's no semicolon after it
-        color("#505050")
         render()
         if (KEY_PROFILE == "dsa") {
             just_legends(height=KEY_HEIGHT+KEY_HEIGHT_EXTRA,
@@ -1004,7 +1021,6 @@ module handle_render(what, legends) {
             }
         }
     } else if (what=="keycap") {
-        color("white")
         render()
         if (KEY_PROFILE == "dsa") {
             DSA_keycap(row=KEY_ROW, length=KEY_LENGTH, width=KEY_WIDTH,
@@ -1316,7 +1332,6 @@ module handle_render(what, legends) {
             %key_using_globals(legends=legends);
         }
     } else if (what=="stem") {
-        color("white")
         if (KEY_PROFILE == "dsa") {
             DSA_stem(
                 stem_type=STEM_TYPE,
@@ -1606,7 +1621,35 @@ module render_keycap(stuff_to_render) {
     }
 }
 
+// Multi-material output: each of these calls is a separate top-level object so that with the
+// lazy-union feature enabled they're kept apart (and exported as separate objects in the .3mf).
+module multi_material(part) {
+    if (MULTI_MATERIAL) {
+        is_row = WHAT_TO_RENDER == "multi-material row";
+        if (is_row) note("HAVE PATIENCE! Rendering all keycaps in ROW variable...");
+        for (i=[0:1:(is_row ? len(ROW) : 1)-1]) {
+            key_legends = is_row ? ROW[i] : LEGENDS;
+            translate([ROW_SPACING*i,0,0]) {
+                if (part == "body") {
+                    // Cut the legends out of the keycap+stem so the two objects never overlap
+                    difference() {
+                        union() {
+                            render_part("keycap", legends=key_legends);
+                            render_part("stem", legends=key_legends);
+                        }
+                        render_part("legends", legends=key_legends);
+                    }
+                } else {
+                    render_part("legends", legends=key_legends);
+                }
+            }
+        }
+    }
+}
+
 render_keycap(RENDER);
+color(MULTI_MATERIAL_BODY_COLOR) multi_material("body");
+color(MULTI_MATERIAL_LEGEND_COLOR) multi_material("legends");
 
 /* CHANGELOG:
     1.10.1:

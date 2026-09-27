@@ -11,6 +11,13 @@ https://openscad.org/downloads.html#snapshots
 
 You need the nightly, last stable is from 2021.01 and it's slow as molasses. 
 
+### Multi-material keycaps
+
+1. In OpenSCAD: Preferences -> Features, enable `lazy-union` (and `manifold` if it's listed; it's the default backend in newer snapshots).
+2. In `keycap_playground.scad` set `WHAT_TO_RENDER = "multi-material"` (or `"multi-material row"` to render everything in `ROW`).
+3. Render (F6) and export as `.3mf`. The file contains two objects: the keycap+stem and the legends (colors set by `MULTI_MATERIAL_BODY_COLOR` / `MULTI_MATERIAL_LEGEND_COLOR`).
+4. In OrcaSlicer, answer "yes" when asked to load it as a single object with multiple parts, then assign a filament to each part.
+
 ### Python
 
 https://www.python.org/downloads/windows/
@@ -77,6 +84,7 @@ https://www.youtube.com/watch?v=WDlRZMvisA4&t=1s
 ## Known issues
 
 #### Colorscad does not work.  
+Not needed anymore, see *Multi-material keycaps* above.
 https://github.com/jschobben/colorscad
 
 It's a linux native application that should run fine with CYGWIN, might get around to fixing it. 
